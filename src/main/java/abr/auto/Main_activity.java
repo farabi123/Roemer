@@ -1,7 +1,6 @@
 package abr.auto;
 
 import android.app.Activity;
-import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.Sensor;
@@ -9,16 +8,9 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
-import android.speech.RecognizerIntent;
-import android.util.Log;
-import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.ToggleButton;
 
-import java.util.ArrayList;
-
-import ioio.lib.api.exception.ConnectionLostException;
 import ioio.lib.util.IOIOLooper;
 import ioio.lib.util.IOIOLooperProvider;
 import ioio.lib.util.android.IOIOAndroidApplicationHelper;
@@ -26,9 +18,7 @@ import ioio.lib.util.android.IOIOAndroidApplicationHelper;
 public class Main_activity extends Activity implements IOIOLooperProvider, SensorEventListener        // implements IOIOLooperProvider: from IOIOActivity
 {
 	private final IOIOAndroidApplicationHelper helper_ = new IOIOAndroidApplicationHelper(this, this);			// from IOIOActivity
-	private TextView irLeftText;
 	private TextView irCenterText;
-	private TextView irRightText;
 	private ToggleButton btnStartStop;
 
 	//variables for compass
@@ -42,7 +32,7 @@ public class Main_activity extends Activity implements IOIOLooperProvider, Senso
 	float[] mGyro;
 	float[] mGeomagnetic;
 
-	IOIO_thread_rover_tank m_ioio_thread;
+	IOIO_thread m_ioio_thread;
 	private TextView resultTEXT;
 
 	public void onCreate(Bundle savedInstanceState) 
@@ -50,10 +40,8 @@ public class Main_activity extends Activity implements IOIOLooperProvider, Senso
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 		resultTEXT = (TextView) findViewById(R.id.command);
-
-		irLeftText = (TextView) findViewById(R.id.irLeft);
 		irCenterText = (TextView) findViewById(R.id.irCenter);
-		irRightText = (TextView) findViewById(R.id.irRight);
+
 		btnStartStop = (ToggleButton) findViewById(R.id.buttonStartStop);
 
 		//set up compass
@@ -78,61 +66,10 @@ public class Main_activity extends Activity implements IOIOLooperProvider, Senso
 	// Should be called whenever a sensor changes.
 	// Good time to get IR values and send move commands to the robot
 
-	public static boolean on = false;
-	public static boolean popup = false;
-	public static boolean returnBool(){
-		return popup;
-	}
-	public static boolean returnONorOff(){
-		return on;
-	}
-
 	@Override
 	public final void onSensorChanged(SensorEvent event) {
-		popup = false;
-		if(m_ioio_thread != null){
-			setText(String.format("%.3f", m_ioio_thread.getIrLeftReading()), irLeftText);
+		if(m_ioio_thread != null) {
 			setText(String.format("%.3f", m_ioio_thread.getIrCenterReading()), irCenterText);
-			setText(String.format("%.3f", m_ioio_thread.getIrRightReading()), irRightText);
-
-			System.out.println("IS IT CHECKED"+btnStartStop.isChecked());
-
-			if(btnStartStop.isChecked()) {
-				on = true;
-				m_ioio_thread.move(0.2f, 0.2f, true, true);
-
-				if (resultTEXT.getText().toString().equals("stay") ) {
-					System.out.println("STAYING");
-					m_ioio_thread.move(0.0f, 0.0f, true, true);
-				}
-				 if (resultTEXT.getText().toString().equals("attack") ) {
-					System.out.println("ATTACKKKK");
-					m_ioio_thread.move(1f, 1f, true, true);
-				}
-				 if (resultTEXT.getText().toString().equals("slow down") ) {
-					System.out.println("slow");
-					m_ioio_thread.move(0.2f, 0.2f, true, true);
-				}
-				 if (resultTEXT.getText().toString().equals("turn right") ) {
-					System.out.println("TURNNNNNN");
-					m_ioio_thread.turn(1600);
-				}
-				 if (resultTEXT.getText().toString().equals("turn left") ) {
-					System.out.println("TURNNNNNN");
-					m_ioio_thread.turn(1000);
-				}
-				else{
-					System.out.println("NOT HEARING OR PROMPTED ANYTHING SO SENSORS CAN DETECT");
-				}
-
-			}
-			else {
-				popup = true;
-				on = false;
-				System.out.println("FORCE STOP");
-				m_ioio_thread.move(0.0f,0.0f,false,false);
-			}
-
 		}
 
 	}
@@ -157,42 +94,6 @@ public class Main_activity extends Activity implements IOIOLooperProvider, Senso
 		});
 	}
 
-	/*****************************************************Voice Recognition*************************************************************************/
-
-	public void onButtonClick(View v){
-		if(v.getId() == R.id.button) {
-			//popup = true;
-			promptSpeechInput();
-		}
-	}
-
-	public void promptSpeechInput(){
-		Intent i = new Intent(RecognizerIntent. ACTION_RECOGNIZE_SPEECH);
-		i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-		i.putExtra(RecognizerIntent.EXTRA_PROMPT, "SAY SOMETHING");
-
-		try{
-			startActivityForResult(i, 100);
-		}
-		catch(ActivityNotFoundException a) {
-			Toast.makeText(Main_activity.this, "Sorry!", Toast.LENGTH_LONG).show();
-		}
-
-	}
-
-	public void onActivityResult(int request_code, int result_code, Intent i) {
-		super.onActivityResult(request_code , result_code , i);
-		switch (request_code) {
-
-			case 100:
-				if (result_code == RESULT_OK && i != null) {
-					ArrayList<String> result = i.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-					resultTEXT.setText(result.get(0));
-				}
-				break;
-		}
-	}
-
 
 	/****************************************************** functions from IOIOActivity *********************************************************************************/
 
@@ -203,7 +104,7 @@ public class Main_activity extends Activity implements IOIOLooperProvider, Senso
 		if(m_ioio_thread == null && connectionType.matches("ioio.lib.android.bluetooth.BluetoothIOIOConnection"))
 		{
 			// enableUi(true);
-			m_ioio_thread = new IOIO_thread_rover_tank();
+			m_ioio_thread = new IOIO_thread();
 			return m_ioio_thread;
 		}
 		else
