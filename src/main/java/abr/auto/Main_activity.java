@@ -24,24 +24,18 @@ public class Main_activity extends Activity implements IOIOLooperProvider, Senso
 	//variables for compass
 	private SensorManager mSensorManager;
 	private Sensor mCompass, mAccelerometer;
-	float[] mAcc;
-	//variables for logging
+
 	private Sensor mGyroscope;
 	private Sensor mGravityS;
-	float[] mGravity;
-	float[] mGyro;
-	float[] mGeomagnetic;
+
 
 	IOIO_thread m_ioio_thread;
-	private TextView resultTEXT;
 
 	public void onCreate(Bundle savedInstanceState) 
 	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
-		resultTEXT = (TextView) findViewById(R.id.command);
 		irCenterText = (TextView) findViewById(R.id.irCenter);
-
 		btnStartStop = (ToggleButton) findViewById(R.id.buttonStartStop);
 
 		//set up compass
