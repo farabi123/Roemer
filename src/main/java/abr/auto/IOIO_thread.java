@@ -11,8 +11,11 @@ import android.util.Log;
 
 public class IOIO_thread extends BaseIOIOLooper
 {
+    static final int DEFAULT_PWM = 1500, MAX_PWM = 2000, MIN_PWM = 1000;
     AnalogInput  irCenter;
+    private PwmOutput pwm_speed_output, pwm_steering_output;
 
+    int pwm_speed, pwm_steering;
     float irCenterReading;
     float dataIRCenter;
 
@@ -22,6 +25,13 @@ public class IOIO_thread extends BaseIOIOLooper
         try
         {
             irCenter = ioio_.openAnalogInput(43);
+            pwm_speed_output = ioio_.openPwmOutput(3, 50); //motor channel 4: front left
+            pwm_steering_output = ioio_.openPwmOutput(4, 50); //motor channel 3: back left
+
+            pwm_speed_output.setPulseWidth(1500);
+            pwm_steering_output.setPulseWidth(1500);
+
+
         }
         catch (ConnectionLostException e){throw e;}
     }
@@ -33,6 +43,9 @@ public class IOIO_thread extends BaseIOIOLooper
         ioio_.beginBatch();
 
             try {
+                pwm_speed_output.setPulseWidth(1800);
+                pwm_steering_output.setPulseWidth(1800);
+                //set_speed(1800);
                 dataIRCenter = irCenter.read();
                 System.out.println("object dataIRCenter" +dataIRCenter);
 
@@ -54,5 +67,36 @@ public class IOIO_thread extends BaseIOIOLooper
         return dataIRCenter/*irCenterReading*/;
     }
 
+    public synchronized void set_speed(int value)
+    {
+        try {
+            if(value > MAX_PWM)
+                pwm_speed_output.setPulseWidth(MAX_PWM);
+            else if(value < MIN_PWM)
+                pwm_speed_output.setPulseWidth(MIN_PWM);
+            else {
+                if (pwm_speed_output != null) {
+                    pwm_speed_output.setPulseWidth(value);
+                }
+            }
+        } catch (ConnectionLostException e) {
+            ioio_.disconnect();
+        }
+    }
 
+    public synchronized void set_steering(int value){
+        try {
+            if(value > MAX_PWM)
+                pwm_steering_output.setPulseWidth(MAX_PWM);
+            else if(value < MIN_PWM)
+                pwm_steering_output.setPulseWidth(MIN_PWM);
+            else {
+                if (pwm_steering_output != null) {
+                    pwm_steering_output.setPulseWidth(value);
+                }
+            }
+        } catch (ConnectionLostException e) {
+            ioio_.disconnect();
+        }
+    }
 }
