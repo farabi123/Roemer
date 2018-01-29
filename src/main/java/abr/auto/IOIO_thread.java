@@ -66,7 +66,7 @@ public class IOIO_thread extends BaseIOIOLooper
         ioio_.beginBatch();
         try {
             //IR Sensor
-
+            //test comment from Kelly
             dataIRCenter = irCenter.read();
             System.out.println("object dataIRCenter" + dataIRCenter);
 
