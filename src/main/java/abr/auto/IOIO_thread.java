@@ -34,8 +34,14 @@ public class IOIO_thread extends BaseIOIOLooper
     private PwmOutput pwm_pan_output, pwm_tilt_output;
     InputStream in;
     OutputStream out;
-    static final int DEFAULT_PWM = 1500, MAX_PWM = 2000, MIN_PWM = 1000;
+    static final int SERVO_DEFAULT_PWM = 1500, SERVO_MAX_PWM = 2000, SERVO_MIN_PWM = 1000;
     int counter;
+
+    //Speed and Steering
+    static final int DEFAULT_PWM = 1500, MAX_PWM = 2000, MIN_PWM = 1000;
+    // < 1500  is Right
+    // > 1500 is Left
+    private PwmOutput pwm_speed_output, pwm_steering_output;
 
 
     @Override
@@ -45,17 +51,23 @@ public class IOIO_thread extends BaseIOIOLooper
             //IR Sensor
             irCenter = ioio_.openAnalogInput(43);
 
-
             //Servos
+
             pwm_pan_output = ioio_.openPwmOutput(5, 50); //motor channel 1: back right;
             pwm_tilt_output = ioio_.openPwmOutput(6, 50); //motor channel 1: back right;
 
-            Uart uart = ioio_.openUart(3, 4, 230400, Uart.Parity.NONE, Uart.StopBits.ONE);
-            in = uart.getInputStream();
-            out = uart.getOutputStream();
-            counter++;
-            pwm_pan_output.setPulseWidth(DEFAULT_PWM);
-            pwm_tilt_output.setPulseWidth(DEFAULT_PWM);
+            //Uart uart = ioio_.openUart(3, 4, 230400, Uart.Parity.NONE, Uart.StopBits.ONE);
+            //in = uart.getInputStream();
+            //out = uart.getOutputStream();
+
+            pwm_pan_output.setPulseWidth(SERVO_DEFAULT_PWM);
+            pwm_tilt_output.setPulseWidth(SERVO_DEFAULT_PWM);
+
+
+            //Steer & speed
+            pwm_speed_output = ioio_.openPwmOutput(3, 50); //motor channel 4: front left
+            pwm_steering_output = ioio_.openPwmOutput(4, 50); //motor channel 3: back left
+
         }
         catch (ConnectionLostException e){throw e;}
     }
@@ -66,7 +78,6 @@ public class IOIO_thread extends BaseIOIOLooper
         ioio_.beginBatch();
         try {
             //IR Sensor
-            //test comment from Kelly
             dataIRCenter = irCenter.read();
             System.out.println("object dataIRCenter" + dataIRCenter);
 
@@ -74,9 +85,15 @@ public class IOIO_thread extends BaseIOIOLooper
                 System.out.println("object detected!!!!!!!!!!!!!!");
             }
             //irCenterReading = irCenter.getVoltage();
+
+            //Servo
             pan(DEFAULT_PWM);
             tilt(DEFAULT_PWM);
-            System.out.println("Counter: ");
+
+            //Steer & speed
+            //set_speed(1800);
+            pwm_steering_output.setPulseWidth(1000);
+
 
             Thread.sleep(10);
         } catch (InterruptedException e) {
@@ -94,10 +111,10 @@ public class IOIO_thread extends BaseIOIOLooper
     public synchronized void pan(int value)
     {
         try {
-            if(value > MAX_PWM)
-                pwm_pan_output.setPulseWidth(DEFAULT_PWM);
-            else if(value < MIN_PWM)
-                pwm_pan_output.setPulseWidth(DEFAULT_PWM);
+            if(value > SERVO_MAX_PWM)
+                pwm_pan_output.setPulseWidth(SERVO_DEFAULT_PWM);
+            else if(value < SERVO_MIN_PWM)
+                pwm_pan_output.setPulseWidth(SERVO_DEFAULT_PWM);
             else
                 pwm_pan_output.setPulseWidth(value);
         } catch (ConnectionLostException e) {
@@ -109,15 +126,52 @@ public class IOIO_thread extends BaseIOIOLooper
     public synchronized void tilt(int value)
     {
         try {
-            if(value > MAX_PWM)
-                pwm_tilt_output.setPulseWidth(DEFAULT_PWM);
-            else if(value < MIN_PWM)
-                pwm_tilt_output.setPulseWidth(DEFAULT_PWM);
+            if(value > SERVO_MAX_PWM)
+                pwm_tilt_output.setPulseWidth(SERVO_DEFAULT_PWM);
+            else if(value < SERVO_MIN_PWM)
+                pwm_tilt_output.setPulseWidth(SERVO_DEFAULT_PWM);
             else
                 pwm_tilt_output.setPulseWidth(value);
         } catch (ConnectionLostException e) {
             ioio_.disconnect();
         }
     }
+
+    public synchronized void set_speed(int value) {
+        try {
+            if(value > MAX_PWM)
+                pwm_speed_output.setPulseWidth(MAX_PWM);
+            else if(value < MIN_PWM)
+                pwm_speed_output.setPulseWidth(MIN_PWM);
+            else {
+                if (pwm_speed_output != null) {
+                    pwm_speed_output.setPulseWidth(value);
+                }
+            }
+        } catch (ConnectionLostException e) {
+                ioio_.disconnect();
+            }
+    }
+
+    public synchronized void set_steering(int value){
+        try {
+            if(value > MAX_PWM)
+                pwm_steering_output.setPulseWidth(MAX_PWM);
+            else if(value < MIN_PWM)
+                pwm_steering_output.setPulseWidth(MIN_PWM);
+            else {
+                if (pwm_steering_output != null) {
+                    pwm_steering_output.setPulseWidth(value);
+                }
+            }
+        } catch (ConnectionLostException e) {
+            ioio_.disconnect();
+        }
+    }
+
+
+
+
+
 
 }
