@@ -59,7 +59,7 @@ public class IOIO_thread extends BaseIOIOLooper
             //Uart uart = ioio_.openUart(3, 4, 230400, Uart.Parity.NONE, Uart.StopBits.ONE);
             //in = uart.getInputStream();
             //out = uart.getOutputStream();
-
+            //dlkjs
             pwm_pan_output.setPulseWidth(SERVO_DEFAULT_PWM);
             pwm_tilt_output.setPulseWidth(SERVO_DEFAULT_PWM);
 
