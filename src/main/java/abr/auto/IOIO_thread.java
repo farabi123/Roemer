@@ -35,7 +35,7 @@ public class IOIO_thread extends BaseIOIOLooper
     InputStream in;
     OutputStream out;
     static final int SERVO_DEFAULT_PWM = 1500, SERVO_MAX_PWM = 2000, SERVO_MIN_PWM = 1000;
-    int counter;
+    int counter; int countervalue = 10;
 
     //Speed and Steering
     static final int DEFAULT_PWM = 1500, MAX_PWM = 2000, MIN_PWM = 1000;
@@ -87,12 +87,15 @@ public class IOIO_thread extends BaseIOIOLooper
             //irCenterReading = irCenter.getVoltage();
 
             //Servo
-            pan(DEFAULT_PWM);
-            tilt(DEFAULT_PWM);
+
+            counter += countervalue;
+            pan(DEFAULT_PWM+counter);
+            tilt(DEFAULT_PWM+counter);
 
             //Steer & speed
-            //set_speed(1800);
-            pwm_steering_output.setPulseWidth(1000);
+            if(countervalue > 0) set_speed(1800);
+            if(countervalue < 0) set_steering(1800);
+            //pwm_steering_output.setPulseWidth(1000);
 
 
             Thread.sleep(10);
@@ -111,10 +114,13 @@ public class IOIO_thread extends BaseIOIOLooper
     public synchronized void pan(int value)
     {
         try {
-            if(value > SERVO_MAX_PWM)
+            if(value > SERVO_MAX_PWM){
                 pwm_pan_output.setPulseWidth(SERVO_DEFAULT_PWM);
-            else if(value < SERVO_MIN_PWM)
+            countervalue = -countervalue;}
+            else if(value < SERVO_MIN_PWM){
                 pwm_pan_output.setPulseWidth(SERVO_DEFAULT_PWM);
+            countervalue = -countervalue;}
+
             else
                 pwm_pan_output.setPulseWidth(value);
         } catch (ConnectionLostException e) {
@@ -126,10 +132,14 @@ public class IOIO_thread extends BaseIOIOLooper
     public synchronized void tilt(int value)
     {
         try {
-            if(value > SERVO_MAX_PWM)
+            if(value > SERVO_MAX_PWM){
                 pwm_tilt_output.setPulseWidth(SERVO_DEFAULT_PWM);
-            else if(value < SERVO_MIN_PWM)
+            countervalue = -countervalue;}
+
+            else if(value < SERVO_MIN_PWM){
                 pwm_tilt_output.setPulseWidth(SERVO_DEFAULT_PWM);
+            countervalue = -countervalue;}
+
             else
                 pwm_tilt_output.setPulseWidth(value);
         } catch (ConnectionLostException e) {
