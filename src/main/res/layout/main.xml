@@ -8,42 +8,42 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true">
+        android:paddingLeft="20dp">
 
         <Button
             android:id="@+id/up_button"
-            android:layout_width="150dp"
-            android:layout_height="150dp"
+            android:layout_width="140dp"
+            android:layout_height="140dp"
             android:onClick="onButtonClick"
-            android:background="@drawable/arrow_up"
+            android:background="@drawable/up"
             android:layout_alignParentTop="true"
             android:layout_alignLeft="@+id/down_button" />
 
         <Button
             android:id="@+id/turn_left_button"
-            android:layout_width="150dp"
-            android:layout_height="150dp"
+            android:layout_width="140dp"
+            android:layout_height="140dp"
             android:onClick="onButtonClick"
-            android:background="@drawable/arrow_left"
+            android:background="@drawable/left"
             android:layout_alignTop="@+id/turn_right_button"
             android:layout_marginLeft="84dp" />
 
         <Button
             android:id="@+id/turn_right_button"
-            android:layout_width="150dp"
-            android:layout_height="150dp"
+            android:layout_width="140dp"
+            android:layout_height="140dp"
             android:onClick="onButtonClick"
-            android:background="@drawable/arrow_right"
+            android:background="@drawable/right"
             android:layout_centerVertical="true"
             android:layout_toRightOf="@+id/up_button" />
         <Button
             android:id="@+id/down_button"
-            android:layout_width="150dp"
-            android:layout_height="150dp"
-            android:background="@drawable/arrow_down"
+            android:layout_width="140dp"
+            android:layout_height="140dp"
+            android:background="@drawable/down"
             android:onClick="onButtonClick"
-            android:layout_below="@id/up_button"
-            android:layout_marginLeft="236dp" />
+            android:layout_alignParentBottom="true"
+            android:layout_toRightOf="@+id/turn_left_button" />
 
     </RelativeLayout>
 
