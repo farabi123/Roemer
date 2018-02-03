@@ -35,9 +35,7 @@ public class IOIO_thread extends BaseIOIOLooper
     InputStream in;
     OutputStream out;
     static final int SERVO_DEFAULT_PWM = 1500, SERVO_MAX_PWM = 2000, SERVO_MIN_PWM = 1000;
-
-    //Speed and Steering
-    static final int DEFAULT_PWM = 1520, MAX_PWM = 1900, MIN_PWM = 1100;
+    static final int DEFAULT_PWM = 1500, MAX_PWM = 2000, MIN_PWM = 1000;
     // < 1500  is Right
     // > 1500 is Left
     private PwmOutput  pwm_left_output, pwm_right_output;
@@ -51,24 +49,18 @@ public class IOIO_thread extends BaseIOIOLooper
             irCenter = ioio_.openAnalogInput(43);
 
             //Servos
-            //tiff test comment
             pwm_pan_output = ioio_.openPwmOutput(5, 50); //motor channel 1: back right;
             pwm_tilt_output = ioio_.openPwmOutput(6, 50); //motor channel 1: back right;
 
-            //Uart uart = ioio_.openUart(3, 4, 230400, Uart.Parity.NONE, Uart.StopBits.ONE);
-            //in = uart.getInputStream();
-            //out = uart.getOutputStream();
 
             pwm_pan_output.setPulseWidth(SERVO_DEFAULT_PWM);
             pwm_tilt_output.setPulseWidth(SERVO_DEFAULT_PWM);
-
 
             //Steer & speed
             pwm_left_output = ioio_.openPwmOutput(3, 50); // S1 to pin 3 controls motor 1 aka left
             pwm_right_output = ioio_.openPwmOutput(4, 50); //S2 to pin 4 controls motor 2 aka right
 
-          //  pwm_left_output.setPulseWidth(DEFAULT_PWM);
-          //  pwm_right_output.setPulseWidth(DEFAULT_PWM);
+
         }
         catch (ConnectionLostException e){throw e;}
     }
@@ -78,6 +70,7 @@ public class IOIO_thread extends BaseIOIOLooper
     {
         ioio_.beginBatch();
         try {
+
             //IR Sensor
             dataIRCenter = irCenter.read();
             System.out.println("object dataIRCenter" + dataIRCenter);
@@ -88,27 +81,9 @@ public class IOIO_thread extends BaseIOIOLooper
             //irCenterReading = irCenter.getVoltage();
 
             //Servo
-            pan(DEFAULT_PWM);
-            tilt(DEFAULT_PWM);
+            pan(SERVO_DEFAULT_PWM);
+            tilt(SERVO_DEFAULT_PWM);
 
-            //Motor Controller
-
-
-                set_left(1200);
-                set_right(1200);
-
-                set_left(DEFAULT_PWM);
-                set_right(DEFAULT_PWM);
-
-
-            /*if(counter >= 10) {
-                set_left(1750);
-                set_right(1750);
-            }
-            counter++;*/
-
-            // pwm_right_output.setPulseWidth(1250);
-           // pwm_left_output.setPulseWidth(1250);
 
             Thread.sleep(10);
         } catch (InterruptedException e) {

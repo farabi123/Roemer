@@ -8,6 +8,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
@@ -35,8 +36,7 @@ public class Main_activity extends Activity implements IOIOLooperProvider, Senso
 	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
-		irCenterText = (TextView) findViewById(R.id.irCenter);
-		btnStartStop = (ToggleButton) findViewById(R.id.buttonStartStop);
+		//irCenterText = (TextView) findViewById(R.id.irCenter);
 
 		//set up compass
 		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
@@ -63,9 +63,48 @@ public class Main_activity extends Activity implements IOIOLooperProvider, Senso
 	@Override
 	public final void onSensorChanged(SensorEvent event) {
 		if(m_ioio_thread != null) {
-			setText(String.format("%.3f", m_ioio_thread.getIrCenterReading()), irCenterText);
+		//	setText(String.format("%.3f", m_ioio_thread.getIrCenterReading()), irCenterText);
 		}
 
+	}
+	public void onButtonClick(View v){
+		if(v.getId() == R.id.up_button) {
+			move(1800);
+			System.out.println ("MOVING FORWARD!");
+		}
+		else if(v.getId() == R.id.down_button) {
+			move(1200);
+			System.out.println ("MOVING BACKWARD!");
+		}
+		else if(v.getId() == R.id.turn_left_button) {
+			turn_left(1600);
+			System.out.println ("MOVING LEFT!");
+		}
+		else if(v.getId() == R.id.turn_right_button) {
+			turn_right(1600);
+			System.out.println ("MOVING RIGHT!");
+		}
+		else{
+			stay();
+			System.out.println ("MOVING NOT!");
+		}
+	}
+
+	private void stay(){
+		m_ioio_thread.set_left(1500);
+		m_ioio_thread.set_right(1500);
+	}
+	private void move(int value){
+		m_ioio_thread.set_left(value);
+		m_ioio_thread.set_right(value);
+	}
+	private void turn_left(int value){
+		m_ioio_thread.set_left(value);
+		m_ioio_thread.set_right(value+200);
+	}
+	private void turn_right(int value){
+		m_ioio_thread.set_left(value+200);
+		m_ioio_thread.set_right(value);
 	}
 
 	private void enableUi(final boolean enable) {
