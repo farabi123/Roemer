@@ -49,8 +49,8 @@ public class IOIO_thread extends BaseIOIOLooper
             irCenter = ioio_.openAnalogInput(43);
 
             //Servos
-            pwm_pan_output = ioio_.openPwmOutput(5, 50); //motor channel 1: back right;
-            pwm_tilt_output = ioio_.openPwmOutput(6, 50); //motor channel 1: back right;
+            pwm_pan_output = ioio_.openPwmOutput(5, 50);
+            pwm_tilt_output = ioio_.openPwmOutput(6, 50);
 
 
             pwm_pan_output.setPulseWidth(SERVO_DEFAULT_PWM);
