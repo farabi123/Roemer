@@ -69,11 +69,15 @@ public class Main_activity extends Activity implements IOIOLooperProvider, Senso
 	}
 	public void onButtonClick(View v){
 		if(v.getId() == R.id.up_button) {
+			//m_ioio_thread.set_left(1800);
+			//m_ioio_thread.set_right(1800);
 			move(1800);
 			System.out.println ("MOVING FORWARD!");
 		}
 		else if(v.getId() == R.id.down_button) {
-			move(1200);
+			m_ioio_thread.set_left(1200);
+			m_ioio_thread.set_right(1200);
+			//move(1200);
 			System.out.println ("MOVING BACKWARD!");
 		}
 		else if(v.getId() == R.id.turn_left_button) {
@@ -84,10 +88,13 @@ public class Main_activity extends Activity implements IOIOLooperProvider, Senso
 			turn_right(1600);
 			System.out.println ("MOVING RIGHT!");
 		}
-		else{
+		else if(v.getId() == R.id.start_stop_button){
+			//m_ioio_thread.set_left(1500);
+			//m_ioio_thread.set_right(1500);
 			stay();
 			System.out.println ("MOVING NOT!");
 		}
+		else{}
 	}
 
 	private void stay(){
