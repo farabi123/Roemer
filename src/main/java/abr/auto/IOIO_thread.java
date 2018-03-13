@@ -15,6 +15,7 @@ import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 import android.util.Log;
 import ioio.lib.api.AnalogInput;
@@ -34,12 +35,19 @@ public class IOIO_thread extends BaseIOIOLooper
     private PwmOutput pwm_pan_output, pwm_tilt_output;
     InputStream in;
     OutputStream out;
-    static final int SERVO_DEFAULT_PWM = 1500, SERVO_MAX_PWM = 2000, SERVO_MIN_PWM = 1000;
+    static final int SERVO_PAN_DEFAULT_PWM = 1450, SERVO_TILT_DEFAULT_PWM = 1250, SERVO_MAX_PWM = 2200, SERVO_MIN_PWM = 800;
     static final int DEFAULT_PWM = 1500, MAX_PWM = 2000, MIN_PWM = 1000;
     // < 1500  is Right
     // > 1500 is Left
-    private PwmOutput  pwm_left_output, pwm_right_output;
-    public int counter = 0;
+    private PwmOutput pwm_left_output, pwm_right_output;
+    public int pan_value, tilt_value;
+    public int pan_direction; // 0 is left, 1 is right;
+    public int step = 5;
+    public int move = 1;
+    public int stop_detected = 0;
+    public int stop = 1;
+    public int object_detected = 0;
+    int flag, flag2, flag3;
 
     @Override
     public void setup() throws ConnectionLostException
@@ -52,14 +60,39 @@ public class IOIO_thread extends BaseIOIOLooper
             pwm_pan_output = ioio_.openPwmOutput(5, 50);
             pwm_tilt_output = ioio_.openPwmOutput(6, 50);
 
-
-            pwm_pan_output.setPulseWidth(SERVO_DEFAULT_PWM);
-            pwm_tilt_output.setPulseWidth(SERVO_DEFAULT_PWM);
-
             //Steer & speed
             pwm_left_output = ioio_.openPwmOutput(3, 50); // S1 to pin 3 controls motor 1 aka left
             pwm_right_output = ioio_.openPwmOutput(4, 50); //S2 to pin 4 controls motor 2 aka right
 
+
+            //Initial scanning of pan and tilt
+            pan_value = SERVO_MIN_PWM;
+            tilt_value = SERVO_TILT_DEFAULT_PWM;
+            pwm_pan_output.setPulseWidth(pan_value);
+            pwm_tilt_output.setPulseWidth(tilt_value);
+
+            stay();
+
+            move(1500);
+
+            for(int i = 0; i < (SERVO_MAX_PWM - SERVO_MIN_PWM)/step; i++) {
+                pan_value += step;
+                pwm_pan_output.setPulseWidth(pan_value);
+            }
+
+            for(int i = 0; i < (SERVO_TILT_DEFAULT_PWM - SERVO_MIN_PWM)/step; i++) {
+                tilt_value -= step;
+                tilt(tilt_value);
+            }
+
+            for(int i = 0; i < (SERVO_MAX_PWM - SERVO_MIN_PWM)/step; i++) {
+                pan_value -= step;
+                pan(pan_value );
+            }
+            for(int i = 0; i < (SERVO_TILT_DEFAULT_PWM - SERVO_MIN_PWM)/step; i++){
+                tilt_value += step;
+                tilt(tilt_value);
+            }
 
         }
         catch (ConnectionLostException e){throw e;}
@@ -70,21 +103,90 @@ public class IOIO_thread extends BaseIOIOLooper
     {
         ioio_.beginBatch();
         try {
+            //pan_value = SERVO_MIN_PWM;
+            //tilt_value = SERVO_TILT_DEFAULT_PWM;
+            //pwm_pan_output.setPulseWidth(pan_value);
+            //pwm_tilt_output.setPulseWidth(tilt_value);
+            if(pan_direction == 1){
+                if(pan_value + step < SERVO_MAX_PWM - 250) { // move right
+                    pan_value += step;
+                    pan(pan_value);
+                }
+                else { // change direction to left
+                    pan_direction = 0;
+                }
+            }
+            else if(pan_direction == 0){
+                if(pan_value + step > SERVO_MIN_PWM + 250) {//move left
+                    pan_value -= step;
+                    pan(pan_value);
+                }
+                else{ // change direction to right
+                    pan_direction = 1;
+                }
+            }
 
             //IR Sensor
             dataIRCenter = irCenter.read();
-            System.out.println("object dataIRCenter" + dataIRCenter);
-
-            if (dataIRCenter > 0.3){
-                System.out.println("object detected!!!!!!!!!!!!!!");
+            //System.out.println("object dataIRCenter" + dataIRCenter);
+            if((flag3 == 0)&&(flag2 == 0)&&(flag == 0)) {
+                if (dataIRCenter > 0.3) {
+                    set_left(1250);
+                    set_right(1250);
+                    flag = 33;
+                    move = 0;
+                    object_detected = 1;
+                    System.out.println("object detected!!!!!!!!!!!!!!");
+                }
             }
             //irCenterReading = irCenter.getVoltage();
 
-            //Servo
-            pan(SERVO_DEFAULT_PWM);
-            tilt(SERVO_DEFAULT_PWM);
+            //Default movement
+            if(move == 1 && object_detected != 1){
+                //go straight
+                move(1600);
+            }
+            /*
+            else if(stop_detected == 1 && stop == 1){
+                move = 0;
+                stop = 0;
+                stop_detected = 0;
+                //stop for ten secs
+                Thread.sleep( 10*1000, 0);
+                move = 1;
+            }
+            */
+            else if(object_detected == 1){
+                if(flag > 0){
+                    flag--;
+                    if(flag ==0){
+                        set_left(1850);
+                        set_right(1550);
+                        flag2 = 40;
+                    }
+                }
 
+                if(flag2 > 0){
+                    flag2--;
+                    if(flag2 ==0){
+                        set_left(1550);
+                        set_right(1850);
+                        flag3 = 54;
+                    }
+                }
 
+                if(flag3 > 0){
+                    flag3--;
+                    if(flag3 ==0){
+                        set_left(1500);
+                        set_right(1500);
+                        move = 1;
+                        object_detected = 0;
+                    }
+                }
+                //move = 1;
+                //object_detected = 0;
+            }
             Thread.sleep(10);
         } catch (InterruptedException e) {
             ioio_.disconnect();
@@ -98,13 +200,31 @@ public class IOIO_thread extends BaseIOIOLooper
         return dataIRCenter/*irCenterReading*/;
     }
 
+
+    private void stay(){
+        set_left(1500);
+        set_right(1500);
+    }
+    private void move(int value){
+        set_left(value);
+        set_right(value);
+    }
+    private void turn_left(int value){
+        set_left(value);
+        set_right(value+200);
+    }
+    private void turn_right(int value){
+        set_left(value+200);
+        set_right(value);
+    }
+
     public synchronized void pan(int value)
     {
         try {
             if(value > SERVO_MAX_PWM)
-                pwm_pan_output.setPulseWidth(SERVO_DEFAULT_PWM);
+                pwm_pan_output.setPulseWidth(SERVO_PAN_DEFAULT_PWM);
             else if(value < SERVO_MIN_PWM)
-                pwm_pan_output.setPulseWidth(SERVO_DEFAULT_PWM);
+                pwm_pan_output.setPulseWidth(SERVO_PAN_DEFAULT_PWM);
             else
                 pwm_pan_output.setPulseWidth(value);
         } catch (ConnectionLostException e) {
@@ -117,9 +237,9 @@ public class IOIO_thread extends BaseIOIOLooper
     {
         try {
             if(value > SERVO_MAX_PWM)
-                pwm_tilt_output.setPulseWidth(SERVO_DEFAULT_PWM);
+                pwm_tilt_output.setPulseWidth(SERVO_TILT_DEFAULT_PWM);
             else if(value < SERVO_MIN_PWM)
-                pwm_tilt_output.setPulseWidth(SERVO_DEFAULT_PWM);
+                pwm_tilt_output.setPulseWidth(SERVO_TILT_DEFAULT_PWM);
             else
                 pwm_tilt_output.setPulseWidth(value);
         } catch (ConnectionLostException e) {
@@ -158,10 +278,4 @@ public class IOIO_thread extends BaseIOIOLooper
             ioio_.disconnect();
         }
     }
-
-
-
-
-
-
 }
